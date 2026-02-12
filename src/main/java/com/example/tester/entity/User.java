@@ -1,16 +1,15 @@
 package com.example.tester.entity;
 
-import jakarta.persistence.*;
 import lombok.Data; // Lombok tự tạo getter/setter
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name = "users")
-@Data 
+@Document(collection = "users")
+@Data
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     private String username;
     private String password;
@@ -22,7 +21,4 @@ public class User {
     
     private boolean isActive = true; // Quan trọng: Mặc định là true (hoạt động)
     
-    // Nếu không dùng Lombok, bạn phải tự viết getter/setter cho isActive 
-    // public boolean isActive() { return isActive; }
-    // public void setActive(boolean active) { this.isActive = active; }
 }
