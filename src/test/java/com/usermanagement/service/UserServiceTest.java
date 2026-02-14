@@ -2,10 +2,10 @@ package com.usermanagement.service;
 
 import com.usermanagement.exception.UserException;
 import com.usermanagement.model.User;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.After;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit Tests cho UserService
@@ -16,12 +16,12 @@ public class UserServiceTest {
 
     private UserService userService;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         userService = new UserService();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         userService.clearAllUsers();
     }
@@ -454,6 +454,62 @@ public class UserServiceTest {
     }
 
     // ============= CHANGE PASSWORD TESTS =============
+    
+    /**
+     * ===== PHÂN TÍCH CHỨC NĂNG CHANGE PASSWORD =====
+     * 
+     * PHƯƠNG THỨC: changePassword(int userId, String oldPassword, String newPassword)
+     * 
+     * LỐC LOGIC:
+     * 1. Kiểm tra user tồn tại? -> Nếu không -> Exception "Người dùng không tồn tại"
+     * 2. Kiểm tra oldPassword == currentPassword? -> Nếu không -> Exception "Mật khẩu cũ không chính xác"
+     * 3. Kiểm tra newPassword != null && !empty? -> Nếu không -> Exception "Password không được để trống"
+     * 4. Kiểm tra newPassword.length() >= 6? -> Nếu không -> Exception "Password phải có tối thiểu 6 ký tự"
+     * 5. Kiểm tra oldPassword != newPassword? -> Nếu không -> Exception "Mật khẩu mới phải khác mật khẩu cũ"
+     * 6. Cập nhật password và updatedAt timestamp
+     * 
+     * ===== BẢNG QUYẾT ĐỊNH BLACK BOX TESTING =====
+     * 
+     * |TC  |UserExists|OldPwdMatch|NewPwdValid|NewPwd≠Old|OldPwdValidation|NewPwdValidation|Result   |
+     * |----|----------|-----------|-----------|---------|-----------------|-----------------|---------|
+     * |001 |Yes       |Yes        |Yes(≥6)    |Yes      |Pass             |Pass             |SUCCESS  |
+     * |002 |Yes       |No         |Yes(≥6)    |Yes      |FAIL             |-                |FAIL     |
+     * |003 |No        |-          |-          |-        |FAIL             |FAIL             |FAIL     |
+     * |004 |Yes       |Yes        |No(empty)  |Yes      |Pass             |FAIL             |FAIL     |
+     * |005 |Yes       |Yes        |No(<6 chr) |Yes      |Pass             |FAIL             |FAIL     |
+     * |006 |Yes       |Yes        |Yes(≥6)    |No       |Pass             |Pass             |FAIL     |
+     * |007 |Yes       |Yes        |Yes(≥6)    |Yes      |Pass             |Pass             |SUCCESS  |
+     * |008 |Yes       |null       |Yes(≥6)    |Yes      |FAIL             |-                |FAIL     |
+     * |009 |Yes       |Yes        |null       |-        |Pass             |FAIL             |FAIL     |
+     * |010 |Yes       |whitespace |Yes(≥6)    |Yes      |FAIL             |-                |FAIL     |
+     * |011 |Yes       |Yes        |whitespace |-        |Pass             |FAIL             |FAIL     |
+     * |012 |Yes       |Yes        |Yes(=6)    |Yes      |Pass             |Pass             |SUCCESS  |
+     * 
+     * ===== PHÂN TÍCH WHITE BOX TESTING (Control Flow & Branch Coverage) =====
+     * 
+     * Nhánh 1: getUserById(userId) == null
+     *   - LineĐT: if (user == null) throw UserException("Người dùng không tồn tại") 
+     *   - TC: TC-CP003 (UserID 999 không tồn tại)
+     * 
+     * Nhánh 2: validateOldPassword() - Kiểm tra oldPassword == currentPassword
+     *   - Condition: oldPassword.equals(currentPassword)
+     *   - TC: TC-CP002 (oldPassword sai), TC-CP008 (oldPassword null), TC-CP010 (whitespace)
+     * 
+     * Nhánh 3: validatePassword(newPassword) - Kiểm tra không null/empty
+     *   - Condition: password == null || password.trim().isEmpty()
+     *   - TC: TC-CP004 (empty), TC-CP009 (null), TC-CP011 (whitespace)
+     * 
+     * Nhánh 4: validatePassword(newPassword) - Kiểm tra độ dài >= 6
+     *   - Condition: password.length() < 6
+     *   - TC: TC-CP005 (4 ký tự < 6), TC-CP012 (6 ký tự = boundary)
+     * 
+     * Nhánh 5: oldPassword.equals(newPassword)
+     *   - Condition: oldPassword == newPassword
+     *   - TC: TC-CP006 (mật khẩu mới giống cũ)
+     * 
+     * Nhánh 6: Success path - Cập nhật password
+     *   - TC: TC-CP001, TC-CP007, TC-CP012
+     */
 
     /**
      * TC-CP001: Đổi mật khẩu thành công với dữ liệu hợp lệ
@@ -577,6 +633,99 @@ public class UserServiceTest {
         // Assert
         User updatedUser = userService.getUserById(user.getId());
         assertEquals("newpassword123", updatedUser.getPassword());
+    }
+
+    /**
+     * TC-CP008: Đổi mật khẩu thất bại khi mật khẩu cũ là null
+     */
+    @Test
+    public void testChangePasswordFailsWithNullOldPassword() throws UserException {
+        // Arrange
+        User user = userService.register("testuser", "oldpassword", "test@example.com", "Test User");
+        
+        try {
+            // Act
+            userService.changePassword(user.getId(), null, "newpassword");
+            
+            // Assert
+            fail("Should throw UserException for null old password");
+        } catch (UserException e) {
+            assertEquals("Mật khẩu cũ không được để trống", e.getMessage());
+        }
+    }
+
+    /**
+     * TC-CP009: Đổi mật khẩu thất bại khi mật khẩu mới là null
+     */
+    @Test
+    public void testChangePasswordFailsWithNullNewPassword() throws UserException {
+        // Arrange
+        User user = userService.register("testuser", "oldpassword", "test@example.com", "Test User");
+        
+        try {
+            // Act
+            userService.changePassword(user.getId(), "oldpassword", null);
+            
+            // Assert
+            fail("Should throw UserException for null new password");
+        } catch (UserException e) {
+            assertEquals("Password không được để trống", e.getMessage());
+        }
+    }
+
+    /**
+     * TC-CP010: Đổi mật khẩu thất bại khi mật khẩu cũ chỉ có khoảng trắng
+     */
+    @Test
+    public void testChangePasswordFailsWithWhitespaceOldPassword() throws UserException {
+        // Arrange
+        User user = userService.register("testuser", "oldpassword", "test@example.com", "Test User");
+        
+        try {
+            // Act
+            userService.changePassword(user.getId(), "   ", "newpassword");
+            
+            // Assert
+            fail("Should throw UserException for whitespace-only old password");
+        } catch (UserException e) {
+            assertEquals("Mật khẩu cũ không được để trống", e.getMessage());
+        }
+    }
+
+    /**
+     * TC-CP011: Đổi mật khẩu thất bại khi mật khẩu mới chỉ có khoảng trắng
+     */
+    @Test
+    public void testChangePasswordFailsWithWhitespaceNewPassword() throws UserException {
+        // Arrange
+        User user = userService.register("testuser", "oldpassword", "test@example.com", "Test User");
+        
+        try {
+            // Act
+            userService.changePassword(user.getId(), "oldpassword", "   ");
+            
+            // Assert
+            fail("Should throw UserException for whitespace-only new password");
+        } catch (UserException e) {
+            assertEquals("Password không được để trống", e.getMessage());
+        }
+    }
+
+    /**
+     * TC-CP012: Đổi mật khẩu thành công với mật khẩu mới ở độ dài ranh giới (6 ký tự)
+     */
+    @Test
+    public void testChangePasswordSuccessWithBoundaryLength() throws UserException {
+        // Arrange
+        User user = userService.register("testuser", "oldpassword", "test@example.com", "Test User");
+        String boundaryPassword = "pass11"; // Exactly 6 characters
+        
+        // Act
+        userService.changePassword(user.getId(), "oldpassword", boundaryPassword);
+        
+        // Assert
+        User updatedUser = userService.getUserById(user.getId());
+        assertEquals(boundaryPassword, updatedUser.getPassword());
     }
 
     // ============= DELETE USER TESTS =============

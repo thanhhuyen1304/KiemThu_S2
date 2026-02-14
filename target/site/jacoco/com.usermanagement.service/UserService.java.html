@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">User Management System - Testing</a> &gt; <a href="index.source.html" class="el_package">com.usermanagement.service</a> &gt; <span class="el_source">UserService.java</span></div><h1>UserService.java</h1><pre class="source lang-java linenums">package com.usermanagement.service;
+
+import com.usermanagement.exception.UserException;
+import com.usermanagement.model.User;
+import com.usermanagement.validator.UserValidator;
+
+import java.util.*;
+
+/**
+ * UserService - Xử lý logic cho các chức năng User Management
+ */
+<span class="fc" id="L12">public class UserService {</span>
+    
+    // Giả lập database trong memory
+<span class="fc" id="L15">    private Map&lt;Integer, User&gt; userDatabase = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L16">    private int nextUserId = 1;</span>
+
+    /**
+     * Đăng ký người dùng mới
+     * - Kiểm tra username chưa tồn tại
+     * - Kiểm tra email chưa tồn tại
+     * - Kiểm tra dữ liệu hợp lệ
+     */
+    public User register(String username, String password, String email, String fullName) 
+            throws UserException {
+        
+        // Validate inputs
+<span class="fc" id="L28">        UserValidator.validateUsername(username);</span>
+<span class="fc" id="L29">        UserValidator.validatePassword(password);</span>
+<span class="fc" id="L30">        UserValidator.validateEmail(email);</span>
+        
+<span class="fc bfc" id="L32" title="All 2 branches covered.">        if (fullName != null) {</span>
+<span class="fc" id="L33">            UserValidator.validateFullName(fullName);</span>
+        }
+
+        // Kiểm tra username chưa tồn tại
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        if (userExists(username)) {</span>
+<span class="fc" id="L38">            throw new UserException(&quot;Username '&quot; + username + &quot;' đã tồn tại&quot;);</span>
+        }
+
+        // Kiểm tra email chưa tồn tại
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        if (emailExists(email)) {</span>
+<span class="fc" id="L43">            throw new UserException(&quot;Email '&quot; + email + &quot;' đã được đăng ký&quot;);</span>
+        }
+
+        // Tạo user mới
+<span class="fc" id="L47">        User newUser = new User(nextUserId++, username, password, email, fullName, &quot;&quot;, true);</span>
+<span class="fc" id="L48">        userDatabase.put(newUser.getId(), newUser);</span>
+
+<span class="fc" id="L50">        return newUser;</span>
+    }
+
+    /**
+     * Đăng nhập
+     * - Kiểm tra username tồn tại
+     * - Kiểm tra password chính xác
+     * - Kiểm tra account active
+     */
+    public User login(String username, String password) throws UserException {
+        
+<span class="fc bfc" id="L61" title="All 4 branches covered.">        if (username == null || username.trim().isEmpty()) {</span>
+<span class="fc" id="L62">            throw new UserException(&quot;Username không được để trống&quot;);</span>
+        }
+
+<span class="fc bfc" id="L65" title="All 4 branches covered.">        if (password == null || password.trim().isEmpty()) {</span>
+<span class="fc" id="L66">            throw new UserException(&quot;Password không được để trống&quot;);</span>
+        }
+
+        // Tìm user theo username
+<span class="fc" id="L70">        User user = findUserByUsername(username);</span>
+        
+<span class="fc bfc" id="L72" title="All 2 branches covered.">        if (user == null) {</span>
+<span class="fc" id="L73">            throw new UserException(&quot;Username hoặc password không chính xác&quot;);</span>
+        }
+
+        // Kiểm tra account active
+<span class="fc bfc" id="L77" title="All 2 branches covered.">        if (!user.isActive()) {</span>
+<span class="fc" id="L78">            throw new UserException(&quot;Tài khoản đã bị vô hiệu hóa&quot;);</span>
+        }
+
+        // Kiểm tra password
+<span class="fc bfc" id="L82" title="All 2 branches covered.">        if (!user.getPassword().equals(password)) {</span>
+<span class="fc" id="L83">            throw new UserException(&quot;Username hoặc password không chính xác&quot;);</span>
+        }
+
+<span class="fc" id="L86">        return user;</span>
+    }
+
+    /**
+     * Đổi mật khẩu
+     * - Kiểm tra user tồn tại
+     * - Kiểm tra mật khẩu cũ chính xác
+     * - Kiểm tra mật khẩu mới hợp lệ
+     */
+    public void changePassword(int userId, String oldPassword, String newPassword) 
+            throws UserException {
+        
+<span class="fc" id="L98">        User user = getUserById(userId);</span>
+        
+<span class="fc bfc" id="L100" title="All 2 branches covered.">        if (user == null) {</span>
+<span class="fc" id="L101">            throw new UserException(&quot;Người dùng không tồn tại&quot;);</span>
+        }
+
+        // Kiểm tra mật khẩu cũ
+<span class="fc" id="L105">        UserValidator.validateOldPassword(oldPassword, user.getPassword());</span>
+
+        // Kiểm tra mật khẩu mới hợp lệ
+<span class="fc" id="L108">        UserValidator.validatePassword(newPassword);</span>
+
+        // Không được đặt mật khẩu mới giống cũ
+<span class="fc bfc" id="L111" title="All 2 branches covered.">        if (oldPassword.equals(newPassword)) {</span>
+<span class="fc" id="L112">            throw new UserException(&quot;Mật khẩu mới phải khác mật khẩu cũ&quot;);</span>
+        }
+
+        // Cập nhật password
+<span class="fc" id="L116">        user.setPassword(newPassword);</span>
+<span class="fc" id="L117">        user.setUpdatedAt(System.currentTimeMillis());</span>
+<span class="fc" id="L118">    }</span>
+
+    /**
+     * Xóa người dùng
+     * - Kiểm tra user tồn tại
+     */
+    public void deleteUser(int userId) throws UserException {
+        
+<span class="fc" id="L126">        User user = getUserById(userId);</span>
+        
+<span class="fc bfc" id="L128" title="All 2 branches covered.">        if (user == null) {</span>
+<span class="fc" id="L129">            throw new UserException(&quot;Người dùng không tồn tại. Không thể xóa&quot;);</span>
+        }
+
+<span class="fc" id="L132">        userDatabase.remove(userId);</span>
+<span class="fc" id="L133">    }</span>
+
+    /**
+     * Cập nhật thông tin người dùng
+     */
+    public void updateUser(int userId, String fullName, String phone, String email) 
+            throws UserException {
+        
+<span class="nc" id="L141">        User user = getUserById(userId);</span>
+        
+<span class="nc bnc" id="L143" title="All 2 branches missed.">        if (user == null) {</span>
+<span class="nc" id="L144">            throw new UserException(&quot;Người dùng không tồn tại&quot;);</span>
+        }
+
+        // Validate inputs
+<span class="nc bnc" id="L148" title="All 4 branches missed.">        if (fullName != null &amp;&amp; !fullName.isEmpty()) {</span>
+<span class="nc" id="L149">            UserValidator.validateFullName(fullName);</span>
+<span class="nc" id="L150">            user.setFullName(fullName);</span>
+        }
+
+<span class="nc bnc" id="L153" title="All 4 branches missed.">        if (phone != null &amp;&amp; !phone.isEmpty()) {</span>
+<span class="nc" id="L154">            UserValidator.validatePhone(phone);</span>
+<span class="nc" id="L155">            user.setPhone(phone);</span>
+        }
+
+<span class="nc bnc" id="L158" title="All 4 branches missed.">        if (email != null &amp;&amp; !email.isEmpty()) {</span>
+<span class="nc" id="L159">            UserValidator.validateEmail(email);</span>
+            // Kiểm tra email mới chưa được dùng
+<span class="nc bnc" id="L161" title="All 4 branches missed.">            if (!email.equals(user.getEmail()) &amp;&amp; emailExists(email)) {</span>
+<span class="nc" id="L162">                throw new UserException(&quot;Email '&quot; + email + &quot;' đã được đăng ký&quot;);</span>
+            }
+<span class="nc" id="L164">            user.setEmail(email);</span>
+        }
+
+<span class="nc" id="L167">        user.setUpdatedAt(System.currentTimeMillis());</span>
+<span class="nc" id="L168">    }</span>
+
+    /**
+     * Lấy thông tin user theo ID
+     */
+    public User getUserById(int userId) {
+<span class="fc" id="L174">        return userDatabase.get(userId);</span>
+    }
+
+    /**
+     * Lấy thông tin user theo username
+     */
+    public User findUserByUsername(String username) {
+<span class="fc bfc" id="L181" title="All 2 branches covered.">        for (User user : userDatabase.values()) {</span>
+<span class="fc bfc" id="L182" title="All 2 branches covered.">            if (user.getUsername().equals(username)) {</span>
+<span class="fc" id="L183">                return user;</span>
+            }
+<span class="fc" id="L185">        }</span>
+<span class="fc" id="L186">        return null;</span>
+    }
+
+    /**
+     * Lấy tất cả users
+     */
+    public List&lt;User&gt; getAllUsers() {
+<span class="fc" id="L193">        return new ArrayList&lt;&gt;(userDatabase.values());</span>
+    }
+
+    /**
+     * Kiểm tra username đã tồn tại
+     */
+    private boolean userExists(String username) {
+<span class="fc bfc" id="L200" title="All 2 branches covered.">        return findUserByUsername(username) != null;</span>
+    }
+
+    /**
+     * Kiểm tra email đã được đăng ký
+     */
+    private boolean emailExists(String email) {
+<span class="fc bfc" id="L207" title="All 2 branches covered.">        for (User user : userDatabase.values()) {</span>
+<span class="fc bfc" id="L208" title="All 2 branches covered.">            if (user.getEmail().equals(email)) {</span>
+<span class="fc" id="L209">                return true;</span>
+            }
+<span class="fc" id="L211">        }</span>
+<span class="fc" id="L212">        return false;</span>
+    }
+
+    /**
+     * Xóa tất cả users (dùng cho testing)
+     */
+    public void clearAllUsers() {
+<span class="fc" id="L219">        userDatabase.clear();</span>
+<span class="fc" id="L220">        nextUserId = 1;</span>
+<span class="fc" id="L221">    }</span>
+
+    /**
+     * Lấy số lượng users
+     */
+    public int getUserCount() {
+<span class="fc" id="L227">        return userDatabase.size();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>
