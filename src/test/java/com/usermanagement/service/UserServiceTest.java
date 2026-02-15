@@ -594,10 +594,11 @@ public class UserServiceTest {
         assertNotNull(userService.getUserById(userId));
         
         // Act
-        userService.deleteUser(userId);
+        String result = userService.deleteUser(userId);
         
         // Assert
         assertNull(userService.getUserById(userId));
+        assertEquals("Xóa người dùng thành công", result);
     }
 
     /**
@@ -613,6 +614,54 @@ public class UserServiceTest {
             fail("Should throw UserException for non-existent user");
         } catch (UserException e) {
             assertTrue(e.getMessage().contains("không tồn tại"));
+        }
+    }
+
+    /**
+     * TC-DU002a: Xóa người dùng thất bại khi user ID = null
+     */
+    @Test
+    public void testDeleteUserFailsWithNullUserId() {
+        try {
+            // Act
+            userService.deleteUser(null);
+            
+            // Assert
+            fail("Should throw UserException for null user ID");
+        } catch (UserException e) {
+            assertEquals("User ID không được để trống", e.getMessage());
+        }
+    }
+
+    /**
+     * TC-DU002b: Xóa người dùng thất bại khi user ID = 0
+     */
+    @Test
+    public void testDeleteUserFailsWithInvalidUserIdZero() {
+        try {
+            // Act
+            userService.deleteUser(0);
+            
+            // Assert
+            fail("Should throw UserException for invalid user ID");
+        } catch (UserException e) {
+            assertEquals("User ID không hợp lệ", e.getMessage());
+        }
+    }
+
+    /**
+     * TC-DU002c: Xóa người dùng thất bại khi user ID âm
+     */
+    @Test
+    public void testDeleteUserFailsWithInvalidUserIdNegative() {
+        try {
+            // Act
+            userService.deleteUser(-1);
+            
+            // Assert
+            fail("Should throw UserException for invalid user ID");
+        } catch (UserException e) {
+            assertEquals("User ID không hợp lệ", e.getMessage());
         }
     }
 
@@ -761,5 +810,314 @@ public class UserServiceTest {
         } catch (UserException e) {
             assertEquals("Username hoặc password không chính xác", e.getMessage());
         }
+    }
+
+    // ============= UPDATE USER TESTS =============
+
+    /**
+     * TC-U001: Cập nhật người dùng thành công với tất cả các trường
+     */
+    @Test
+    public void testUpdateUserSuccessWithAllFields() throws UserException {
+        // Arrange
+        User user = userService.register("testuser", "password123", "test@example.com", "Old Name");
+        int userId = user.getId();
+        
+        // Act
+        userService.updateUser(userId, "New Name", "0912345678", "newemail@example.com");
+        
+        // Assert
+        User updatedUser = userService.getUserById(userId);
+        assertEquals("New Name", updatedUser.getFullName());
+        assertEquals("0912345678", updatedUser.getPhone());
+        assertEquals("newemail@example.com", updatedUser.getEmail());
+    }
+
+    /**
+     * TC-U002: Cập nhật thất bại khi user không tồn tại
+     */
+    @Test
+    public void testUpdateUserFailsWithNonExistentUser() {
+        try {
+            // Act
+            userService.updateUser(999, "New Name", "0912345678", "newemail@example.com");
+            
+            // Assert
+            fail("Should throw UserException for non-existent user");
+        } catch (UserException e) {
+            assertEquals("Người dùng không tồn tại", e.getMessage());
+        }
+    }
+
+    /**
+     * TC-U003: Cập nhật fullName hợp lệ
+     */
+    @Test
+    public void testUpdateUserSuccessWithValidFullName() throws UserException {
+        // Arrange
+        User user = userService.register("testuser", "password123", "test@example.com", "Old Name");
+        int userId = user.getId();
+        
+        // Act
+        userService.updateUser(userId, "Updated Name", null, null);
+        
+        // Assert
+        User updatedUser = userService.getUserById(userId);
+        assertEquals("Updated Name", updatedUser.getFullName());
+    }
+
+    /**
+     * TC-U004: Cập nhật fullName không hợp lệ (quá dài)
+     */
+    @Test
+    public void testUpdateUserFailsWithFullNameTooLong() throws UserException {
+        // Arrange
+        User user = userService.register("testuser", "password123", "test@example.com", "Old Name");
+        int userId = user.getId();
+        String longName = "a".repeat(101);
+        
+        try {
+            // Act
+            userService.updateUser(userId, longName, null, null);
+            
+            // Assert
+            fail("Should throw UserException for fullName too long");
+        } catch (UserException e) {
+            assertTrue(e.getMessage().contains("không vượt quá 100 ký tự"));
+        }
+    }
+
+    /**
+     * TC-U005: Không cập nhật fullName khi null hoặc rỗng
+     */
+    @Test
+    public void testUpdateUserWithNullFullNameDoesNotChange() throws UserException {
+        // Arrange
+        User user = userService.register("testuser", "password123", "test@example.com", "Original Name");
+        int userId = user.getId();
+        
+        // Act
+        userService.updateUser(userId, null, null, null);
+        
+        // Assert
+        User updatedUser = userService.getUserById(userId);
+        assertEquals("Original Name", updatedUser.getFullName());
+    }
+
+    /**
+     * TC-U005b: Không cập nhật fullName khi empty string
+     */
+    @Test
+    public void testUpdateUserWithEmptyFullNameDoesNotChange() throws UserException {
+        // Arrange
+        User user = userService.register("testuser", "password123", "test@example.com", "Original Name");
+        int userId = user.getId();
+        
+        // Act
+        userService.updateUser(userId, "", null, null);
+        
+        // Assert
+        User updatedUser = userService.getUserById(userId);
+        assertEquals("Original Name", updatedUser.getFullName());
+    }
+
+    /**
+     * TC-U006: Cập nhật phone hợp lệ (10 chữ số)
+     */
+    @Test
+    public void testUpdateUserSuccessWithValidPhone() throws UserException {
+        // Arrange
+        User user = userService.register("testuser", "password123", "test@example.com", "Test User");
+        int userId = user.getId();
+        
+        // Act
+        userService.updateUser(userId, null, "0912345678", null);
+        
+        // Assert
+        User updatedUser = userService.getUserById(userId);
+        assertEquals("0912345678", updatedUser.getPhone());
+    }
+
+    /**
+     * TC-U007: Cập nhật phone không hợp lệ (không đủ 10 số)
+     */
+    @Test
+    public void testUpdateUserFailsWithInvalidPhone() throws UserException {
+        // Arrange
+        User user = userService.register("testuser", "password123", "test@example.com", "Test User");
+        int userId = user.getId();
+        
+        try {
+            // Act
+            userService.updateUser(userId, null, "12345", null);
+            
+            // Assert
+            fail("Should throw UserException for invalid phone");
+        } catch (UserException e) {
+            assertTrue(e.getMessage().contains("10 chữ số"));
+        }
+    }
+
+    /**
+     * TC-U008: Không cập nhật phone khi null hoặc rỗng
+     */
+    @Test
+    public void testUpdateUserWithNullPhoneDoesNotChange() throws UserException {
+        // Arrange
+        User user = userService.register("testuser", "password123", "test@example.com", "Test User");
+        user.setPhone("0912345678");
+        int userId = user.getId();
+        
+        // Act
+        userService.updateUser(userId, null, null, null);
+        
+        // Assert
+        User updatedUser = userService.getUserById(userId);
+        assertEquals("0912345678", updatedUser.getPhone());
+    }
+
+    /**
+     * TC-U009: Cập nhật email hợp lệ (không trùng)
+     */
+    @Test
+    public void testUpdateUserSuccessWithValidEmail() throws UserException {
+        // Arrange
+        User user = userService.register("testuser", "password123", "test@example.com", "Test User");
+        int userId = user.getId();
+        
+        // Act
+        userService.updateUser(userId, null, null, "newemail@example.com");
+        
+        // Assert
+        User updatedUser = userService.getUserById(userId);
+        assertEquals("newemail@example.com", updatedUser.getEmail());
+    }
+
+    /**
+     * TC-U010: Cập nhật email không hợp lệ
+     */
+    @Test
+    public void testUpdateUserFailsWithInvalidEmail() throws UserException {
+        // Arrange
+        User user = userService.register("testuser", "password123", "test@example.com", "Test User");
+        int userId = user.getId();
+        
+        try {
+            // Act
+            userService.updateUser(userId, null, null, "invalidemail");
+            
+            // Assert
+            fail("Should throw UserException for invalid email");
+        } catch (UserException e) {
+            assertEquals("Email không hợp lệ", e.getMessage());
+        }
+    }
+
+    /**
+     * TC-U011: Không cập nhật email khi null hoặc rỗng
+     */
+    @Test
+    public void testUpdateUserWithNullEmailDoesNotChange() throws UserException {
+        // Arrange
+        User user = userService.register("testuser", "password123", "test@example.com", "Test User");
+        int userId = user.getId();
+        
+        // Act
+        userService.updateUser(userId, null, null, null);
+        
+        // Assert
+        User updatedUser = userService.getUserById(userId);
+        assertEquals("test@example.com", updatedUser.getEmail());
+    }
+
+    /**
+     * TC-U012: Cập nhật email thành email của user khác (trùng)
+     */
+    @Test
+    public void testUpdateUserFailsWithDuplicateEmail() throws UserException {
+        // Arrange
+        User user1 = userService.register("user1", "password123", "user1@example.com", "User 1");
+        User user2 = userService.register("user2", "password123", "user2@example.com", "User 2");
+        int user2Id = user2.getId();
+        
+        try {
+            // Act
+            userService.updateUser(user2Id, null, null, "user1@example.com");
+            
+            // Assert
+            fail("Should throw UserException for duplicate email");
+        } catch (UserException e) {
+            assertTrue(e.getMessage().contains("đã được đăng ký"));
+        }
+    }
+
+    /**
+     * TC-U013: Cập nhật email giữ nguyên (không thay đổi)
+     */
+    @Test
+    public void testUpdateUserWithSameEmailDoesNotThrow() throws UserException {
+        // Arrange
+        User user = userService.register("testuser", "password123", "test@example.com", "Test User");
+        int userId = user.getId();
+        
+        // Act & Assert - Không ném exception khi email giữ nguyên
+        userService.updateUser(userId, null, null, "test@example.com");
+        
+        User updatedUser = userService.getUserById(userId);
+        assertEquals("test@example.com", updatedUser.getEmail());
+    }
+
+    /**
+     * TC-U014: Cập nhật nhiều trường cùng lúc (fullName + email)
+     */
+    @Test
+    public void testUpdateUserMultipleFields() throws UserException {
+        // Arrange
+        User user = userService.register("testuser", "password123", "test@example.com", "Old Name");
+        int userId = user.getId();
+        
+        // Act
+        userService.updateUser(userId, "New Name", null, "newemail@example.com");
+        
+        // Assert
+        User updatedUser = userService.getUserById(userId);
+        assertEquals("New Name", updatedUser.getFullName());
+        assertEquals("newemail@example.com", updatedUser.getEmail());
+        assertEquals("", updatedUser.getPhone()); // Phone giữ nguyên giá trị ban đầu (empty string)
+    }
+
+    /**
+     * TC-U015: Không cập nhật phone khi empty string
+     */
+    @Test
+    public void testUpdateUserWithEmptyPhoneDoesNotChange() throws UserException {
+        // Arrange
+        User user = userService.register("testuser", "password123", "test@example.com", "Test User");
+        user.setPhone("0912345678");
+        int userId = user.getId();
+        
+        // Act
+        userService.updateUser(userId, null, "", null);
+        
+        // Assert
+        User updatedUser = userService.getUserById(userId);
+        assertEquals("0912345678", updatedUser.getPhone());
+    }
+
+    /**
+     * TC-U016: Không cập nhật email khi empty string
+     */
+    @Test
+    public void testUpdateUserWithEmptyEmailDoesNotChange() throws UserException {
+        // Arrange
+        User user = userService.register("testuser", "password123", "test@example.com", "Test User");
+        int userId = user.getId();
+        
+        // Act
+        userService.updateUser(userId, null, null, "");
+        
+        // Assert
+        User updatedUser = userService.getUserById(userId);
+        assertEquals("test@example.com", updatedUser.getEmail());
     }
 }

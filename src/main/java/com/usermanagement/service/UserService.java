@@ -119,9 +119,19 @@ public class UserService {
 
     /**
      * Xóa người dùng
+     * - Kiểm tra user ID không được null hoặc rỗng
      * - Kiểm tra user tồn tại
+     * @return Thông báo thành công
      */
-    public void deleteUser(int userId) throws UserException {
+    public String deleteUser(Integer userId) throws UserException {
+        
+        if (userId == null) {
+            throw new UserException("User ID không được để trống");
+        }
+        
+        if (userId <= 0) {
+            throw new UserException("User ID không hợp lệ");
+        }
         
         User user = getUserById(userId);
         
@@ -130,6 +140,7 @@ public class UserService {
         }
 
         userDatabase.remove(userId);
+        return "Xóa người dùng thành công";
     }
 
     /**

@@ -45,6 +45,14 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- JUnit Vintage for JUnit 4 tests -->
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>${junit5.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Mockito for mocking -->
         <dependency>
             <groupId>org.mockito</groupId>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserValidator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">User Management System - Testing</a> &gt; <a href="index.source.html" class="el_package">com.usermanagement.validator</a> &gt; <span class="el_source">UserValidator.java</span></div><h1>UserValidator.java</h1><pre class="source lang-java linenums">package com.usermanagement.validator;
+
+import com.usermanagement.exception.UserException;
+
+import java.util.regex.Pattern;
+
+/**
+ * UserValidator - Kiểm tra tính hợp lệ của dữ liệu User
+ */
+public class UserValidator {
+    
+    // Regex patterns
+<span class="fc" id="L13">    private static final Pattern EMAIL_PATTERN = </span>
+<span class="fc" id="L14">        Pattern.compile(&quot;^[A-Za-z0-9+_.-]+@(.+)$&quot;);</span>
+<span class="fc" id="L15">    private static final Pattern USERNAME_PATTERN = </span>
+<span class="fc" id="L16">        Pattern.compile(&quot;^[a-zA-Z0-9_]{3,20}$&quot;);</span>
+
+    private UserValidator() {
+        // Private constructor để tránh instantiation
+    }
+
+    /**
+     * Kiểm tra username hợp lệ
+     * - Độ dài: 3-20 ký tự
+     * - Chỉ chứa chữ, số, underscore
+     */
+    public static void validateUsername(String username) throws UserException {
+<span class="pc bpc" id="L28" title="1 of 4 branches missed.">        if (username == null || username.trim().isEmpty()) {</span>
+<span class="fc" id="L29">            throw new UserException(&quot;Username không được để trống&quot;);</span>
+        }
+
+<span class="fc bfc" id="L32" title="All 4 branches covered.">        if (username.length() &lt; 3 || username.length() &gt; 20) {</span>
+<span class="fc" id="L33">            throw new UserException(&quot;Username phải có độ dài từ 3 đến 20 ký tự&quot;);</span>
+        }
+
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        if (!USERNAME_PATTERN.matcher(username).matches()) {</span>
+<span class="fc" id="L37">            throw new UserException(&quot;Username chỉ chứa chữ, số và underscore&quot;);</span>
+        }
+<span class="fc" id="L39">    }</span>
+
+    /**
+     * Kiểm tra password hợp lệ
+     * - Độ dài: tối thiểu 6 ký tự
+     * - Không được để trống
+     */
+    public static void validatePassword(String password) throws UserException {
+<span class="pc bpc" id="L47" title="1 of 4 branches missed.">        if (password == null || password.trim().isEmpty()) {</span>
+<span class="fc" id="L48">            throw new UserException(&quot;Password không được để trống&quot;);</span>
+        }
+
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        if (password.length() &lt; 6) {</span>
+<span class="fc" id="L52">            throw new UserException(&quot;Password phải có tối thiểu 6 ký tự&quot;);</span>
+        }
+<span class="fc" id="L54">    }</span>
+
+    /**
+     * Kiểm tra email hợp lệ
+     */
+    public static void validateEmail(String email) throws UserException {
+<span class="pc bpc" id="L60" title="1 of 4 branches missed.">        if (email == null || email.trim().isEmpty()) {</span>
+<span class="fc" id="L61">            throw new UserException(&quot;Email không được để trống&quot;);</span>
+        }
+
+<span class="fc bfc" id="L64" title="All 2 branches covered.">        if (!EMAIL_PATTERN.matcher(email).matches()) {</span>
+<span class="fc" id="L65">            throw new UserException(&quot;Email không hợp lệ&quot;);</span>
+        }
+<span class="fc" id="L67">    }</span>
+
+    /**
+     * Kiểm tra phone hợp lệ (số điện thoại Việt Nam)
+     * - Độ dài: 10 chữ số
+     * - Chỉ chứa chữ số
+     */
+    public static void validatePhone(String phone) throws UserException {
+<span class="pc bpc" id="L75" title="2 of 4 branches missed.">        if (phone == null || phone.trim().isEmpty()) {</span>
+<span class="nc" id="L76">            throw new UserException(&quot;Số điện thoại không được để trống&quot;);</span>
+        }
+
+<span class="fc bfc" id="L79" title="All 2 branches covered.">        if (!phone.matches(&quot;^[0-9]{10}$&quot;)) {</span>
+<span class="fc" id="L80">            throw new UserException(&quot;Số điện thoại phải có 10 chữ số&quot;);</span>
+        }
+<span class="fc" id="L82">    }</span>
+
+    /**
+     * Kiểm tra fullName hợp lệ
+     */
+    public static void validateFullName(String fullName) throws UserException {
+<span class="pc bpc" id="L88" title="2 of 4 branches missed.">        if (fullName == null || fullName.trim().isEmpty()) {</span>
+<span class="nc" id="L89">            throw new UserException(&quot;Tên đầy đủ không được để trống&quot;);</span>
+        }
+
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (fullName.length() &gt; 100) {</span>
+<span class="fc" id="L93">            throw new UserException(&quot;Tên đầy đủ không vượt quá 100 ký tự&quot;);</span>
+        }
+<span class="fc" id="L95">    }</span>
+
+    /**
+     * Kiểm tra xem password cũ có khớp không
+     */
+    public static void validateOldPassword(String oldPassword, String currentPassword) 
+            throws UserException {
+<span class="fc bfc" id="L102" title="All 2 branches covered.">        if (!oldPassword.equals(currentPassword)) {</span>
+<span class="fc" id="L103">            throw new UserException(&quot;Mật khẩu cũ không chính xác&quot;);</span>
+        }
+<span class="fc" id="L105">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>
