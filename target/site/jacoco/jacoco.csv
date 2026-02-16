@@ -1,5 +1,0 @@
-GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
-User Management System - Testing,com.usermanagement.service,UserService,60,249,18,36,16,59,10,30,1,12
-User Management System - Testing,com.usermanagement.exception,UserException,5,4,0,0,2,2,1,1,1,1
-User Management System - Testing,com.usermanagement.model,User,120,60,10,0,33,23,19,10,14,10
-User Management System - Testing,com.usermanagement.validator,UserValidator,26,122,10,30,6,30,8,19,1,6
