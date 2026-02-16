@@ -99,6 +99,10 @@ public class UserValidator {
      */
     public static void validateOldPassword(String oldPassword, String currentPassword) 
             throws UserException {
+        if (oldPassword == null || oldPassword.trim().isEmpty()) {
+            throw new UserException("Mật khẩu cũ không được để trống");
+        }
+        
         if (!oldPassword.equals(currentPassword)) {
             throw new UserException("Mật khẩu cũ không chính xác");
         }

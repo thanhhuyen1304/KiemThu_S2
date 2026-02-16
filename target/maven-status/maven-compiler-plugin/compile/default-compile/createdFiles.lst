@@ -1,4 +1,0 @@
-com\usermanagement\model\User.class
-com\usermanagement\validator\UserValidator.class
-com\usermanagement\service\UserService.class
-com\usermanagement\exception\UserException.class
