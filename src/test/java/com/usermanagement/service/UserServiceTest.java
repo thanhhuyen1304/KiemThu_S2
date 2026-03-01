@@ -767,7 +767,7 @@ public class UserServiceTest {
     }
 
     /**
-     * TC-DU002a: Xóa người dùng thất bại khi user ID = null
+     * TC-DU003: Xóa người dùng thất bại khi user ID = null
      */
     @Test
     public void testDeleteUserFailsWithNullUserId() {
@@ -783,7 +783,7 @@ public class UserServiceTest {
     }
 
     /**
-     * TC-DU002b: Xóa người dùng thất bại khi user ID = 0
+     * TC-DU004: Xóa người dùng thất bại khi user ID = 0
      */
     @Test
     public void testDeleteUserFailsWithInvalidUserIdZero() {
@@ -799,7 +799,7 @@ public class UserServiceTest {
     }
 
     /**
-     * TC-DU002c: Xóa người dùng thất bại khi user ID âm
+     * TC-DU005: Xóa người dùng thất bại khi user ID âm
      */
     @Test
     public void testDeleteUserFailsWithInvalidUserIdNegative() {
@@ -815,7 +815,7 @@ public class UserServiceTest {
     }
 
     /**
-     * TC-DU003: Xóa người dùng thất bại khi xóa lần thứ hai
+     * TC-DU006: Xóa người dùng thất bại khi xóa lần thứ hai
      */
     @Test
     public void testDeleteUserFailsWhenDeletedTwice() throws UserException {
@@ -836,7 +836,7 @@ public class UserServiceTest {
     }
 
     /**
-     * TC-DU004: Xóa người dùng không ảnh hưởng tới người dùng khác
+     * TC-DU007: Xóa người dùng không ảnh hưởng tới người dùng khác
      */
     @Test
     public void testDeleteUserDoesNotAffectOtherUsers() throws UserException {
@@ -856,7 +856,7 @@ public class UserServiceTest {
     }
 
     /**
-     * TC-DU005: Xóa người dùng sau khi đăng nhập
+     * TC-DU008: Xóa người dùng sau khi đăng nhập
      */
     @Test
     public void testDeleteUserAfterLogin() throws UserException {
